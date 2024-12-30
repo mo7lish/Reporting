@@ -1,0 +1,134 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:background="#FFFFFF"
+	android:orientation="vertical">
+
+	<ScrollView
+		android:id="@+id/reportDetailsScrollView"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:background="#FFDEDE"
+		android:paddingTop="56dp">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:orientation="vertical">
+
+			<LinearLayout
+				android:id="@+id/reportHeaderLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="9dp"
+				android:layout_marginBottom="29dp"
+				android:orientation="horizontal">
+
+				<ImageView
+					android:id="@+id/reportIconImageView"
+					android:layout_width="35dp"
+					android:layout_height="match_parent"
+					android:layout_marginEnd="95dp"
+					android:scaleType="fitXY"
+					android:src="@drawable/ic_back" />
+
+				<TextView
+					android:id="@+id/reportTitleTextView"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="11dp"
+					android:layout_weight="1"
+					android:text="Report Details"
+					android:textColor="#000000"
+					android:textSize="20sp" />
+			</LinearLayout>
+
+			<TextView
+				android:id="@+id/reportCodeTextView"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="16dp"
+				android:layout_marginBottom="8dp"
+				android:layout_weight="1"
+				android:text="SH0093 Sexual Harrasment"
+				android:textColor="#000000"
+				android:textSize="15sp" />
+
+			<TextView
+				android:id="@+id/reportDetailsTextView"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="22dp"
+				android:layout_marginBottom="32dp"
+				android:layout_weight="1"
+				android:text="Name: Maria Amir\nUsername: maramir\nReport Date : 23/11/2024 6:30p.m.\nLocation: LRT universiti, Kuala Lumpur\nPhone Number: +6012-6307282"
+				android:textColor="#000000"
+				android:textSize="14sp" />
+
+			<TextView
+				android:id="@+id/reportLabelTextView"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="22dp"
+				android:layout_marginBottom="4dp"
+				android:text="Report"
+				android:textColor="#7A6E6E"
+				android:textSize="15sp" />
+
+			<LinearLayout
+				android:id="@+id/reportTextLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="15dp"
+				android:layout_marginBottom="14dp"
+				android:background="@drawable/input_field_background"
+				android:orientation="vertical"
+				android:paddingHorizontal="16dp"
+				android:paddingTop="7dp"
+				android:paddingBottom="38dp">
+
+				<TextView
+					android:id="@+id/reportTextTextView"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:text="Every day, I went to work at 8 a.m. and returned home at 6 p.m. via LRT, but yesterday, someone groped me as I was exiting the train. The train had already left before I could do anything. I was traumatised and felt afraid to use public transport again, despite the fact that it is my only way to get to work. What do I do?"
+					android:textColor="#000000"
+					android:textSize="15sp" />
+			</LinearLayout>
+
+			<TextView
+				android:id="@+id/responseLabelTextView"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="22dp"
+				android:layout_marginBottom="2dp"
+				android:text="Response"
+				android:textColor="#7A6E6E"
+				android:textSize="15sp" />
+
+			<LinearLayout
+				android:id="@+id/responseTextLayout"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="16dp"
+				android:background="@drawable/input_field_background"
+				android:orientation="vertical"
+				android:paddingHorizontal="15dp"
+				android:paddingTop="9dp"
+				android:paddingBottom="148dp">
+
+				<TextView
+					android:id="@+id/responseTextTextView"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:text="It is advised that you report to the nearby authorities, such as the security guard, so that they can take action, like searching for that suspicious person checking the CCTV. "
+					android:textColor="#000000"
+					android:textSize="15sp" />
+			</LinearLayout>
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>

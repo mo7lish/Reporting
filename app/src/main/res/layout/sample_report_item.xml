@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF"
+    android:layout_marginBottom="8dp">
+
+    <!-- Report Title -->
+    <TextView
+        android:id="@+id/reportCodeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CM0001\nChild Marriage"
+        android:textColor="#F46746"
+        android:textSize="20sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Report Status Layout -->
+    <LinearLayout
+        android:id="@+id/reportStatusLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:background="@drawable/input_field_background"
+        android:paddingHorizontal="12dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal">
+
+        <!-- Editable Text Field for Report Type -->
+        <EditText
+            android:id="@+id/reportDetailsEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Report Details"
+            android:textColor="#000000"
+            android:textSize="15sp"
+            android:paddingVertical="24dp"
+            android:layout_marginEnd="4dp" />
+
+        <!-- Status Indicator -->
+        <LinearLayout
+            android:id="@+id/statusPendingLayout"
+            android:layout_width="85dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:background="@drawable/button_background_pending"
+            android:paddingVertical="7dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/statusTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pending"
+                android:textColor="#000000"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

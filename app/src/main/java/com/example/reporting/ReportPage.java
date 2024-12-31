@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -15,26 +16,41 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 public class ReportPage extends AppCompatActivity {
 
     private RecyclerView reportsRecyclerView;
     private ReportAdapter reportAdapter;
     private List<Report> reportList;
     private ActivityResultLauncher<Intent> reportSubmissionLauncher;
-    private static final int REQUEST_CODE_REPORT_SUBMISSION = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_page);
         
+        // Load initial sample reports if no reports exist
+        if (loadReports().isEmpty()) {
+            List<Report> sampleReports = new ArrayList<>();
+            sampleReports.add(new Report(1, "Child Marriage", "Sample report for child marriage case", 
+                "John Doe", "johndoe", "23/11/2023 14:30", "+1234567890", "Pending"));
+            sampleReports.add(new Report(2, "Forced Marriage", "Sample report for forced marriage case", 
+                "Jane Smith", "janesmith", "24/11/2023 15:45", "+1234567890", "Pending"));
+            sampleReports.add(new Report(3, "Sexual Harassment", "Sample report for harassment case", 
+                "Maria Amir", "maramir", "25/11/2023 16:15", "+1234567890", "Completed"));
+            saveReports(sampleReports);
+        }
+        
         // Initialize RecyclerView
         reportsRecyclerView = findViewById(R.id.reportsRecyclerView);
         reportsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         
         // Load saved reports from SharedPreferences
-        reportList = new ArrayList<>();
-        reportList.addAll(loadReports());
+        reportList = loadReports();
+        if (reportList == null) {
+            reportList = new ArrayList<>();
+        }
         
         // Initialize adapter with loaded reports
         reportAdapter = new ReportAdapter(this, reportList);
@@ -55,76 +71,68 @@ public class ReportPage extends AppCompatActivity {
             }
         );
 
-        ImageView addReportButton = findViewById(R.id.appIconImageView);
-        addReportButton.setOnClickListener(v -> {
-            // Open ReportSubmissionActivity to submit a new report
-            Intent intent = new Intent(ReportPage.this, ReportSubmissionActivity.class);
-            reportSubmissionLauncher.launch(intent);
-        });
+        FloatingActionButton addReportButton = findViewById(R.id.addReportFab);
+        if (addReportButton != null) {
+            addReportButton.setOnClickListener(v -> {
+                // Open ReportSubmissionActivity to submit a new report
+                Intent intent = new Intent(ReportPage.this, ReportSubmissionActivity.class);
+                reportSubmissionLauncher.launch(intent);
+            });
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         // Reload the report list when the activity is resumed (after adding a new report)
-        reportList = loadReports();
-        reportAdapter.updateReports(reportList);
-        reportAdapter.notifyDataSetChanged();
+        List<Report> loadedReports = loadReports();
+        if (loadedReports != null) {
+            reportList = loadedReports;
+            if (reportAdapter != null) {
+                reportAdapter.updateReports(reportList);
+                reportAdapter.notifyDataSetChanged();
+            }
+        } else {
+            reportList = new ArrayList<>();
+        }
     }
 
-     @Override
-     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         super.onActivityResult(requestCode, resultCode, data);
+     // Activity result handling is now done through reportSubmissionLauncher
 
-         if (requestCode == REQUEST_CODE_REPORT_SUBMISSION && resultCode == RESULT_OK) {
-             // Retrieve the new report from the Intent
-             Report newReport = (Report) data.getSerializableExtra("newReport");
-
-             if (newReport != null) {
-                 // Add the new report to the list and update the UI
-                 reportList.add(newReport);
-                 reportAdapter.notifyDataSetChanged();
-
-                 // Save the updated report list
-                 saveReports(reportList);
-             }
-         }
-     }
-
-//    private final ActivityResultLauncher<Intent> reportSubmissionLauncher =
-//        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-//            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-//                Report newReport = result.getData().getParcelableExtra("newReport"); // import android.os.Parcelable
-//                if (newReport != null) {
-//                    reportList.add(newReport);
-//                    reportAdapter.notifyDataSetChanged();
-//                    saveReports(reportList);
-//                }
-//            }
-//        });
+// Removed commented out code
 
     // Handle item click to show report details
     public void showReportDetails(Report report) {
-        Intent intent = new Intent(ReportPage.this, ReportDetailsActivity.class);
+        Intent intent = new Intent(this, ReportDetailsActivity.class);
         intent.putExtra("report", report);
         startActivity(intent);
     }
 
     // Save the reports to SharedPreferences
     private void saveReports(List<Report> reports) {
-        SharedPreferences sharedPreferences = getSharedPreferences("ReportsPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+        try {
+            SharedPreferences sharedPreferences = getSharedPreferences("ReportsPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        // Save reports as a JSON string (using Gson to convert to JSON)
-        String reportsJson = new Gson().toJson(reports);
-        editor.putString("reports", reportsJson);
-        editor.apply();
+            // Save reports as a JSON string (using Gson to convert to JSON)
+            String reportsJson = new Gson().toJson(reports != null ? reports : new ArrayList<>());
+            editor.putString("reports", reportsJson);
+            editor.apply();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error saving reports: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Load reports from SharedPreferences
     private List<Report> loadReports() {
-        SharedPreferences sharedPreferences = getSharedPreferences("ReportsPrefs", MODE_PRIVATE);
-        String reportsJson = sharedPreferences.getString("reports", "[]");  // Default to an empty list
-        return new Gson().fromJson(reportsJson, new TypeToken<List<Report>>(){}.getType());
+        try {
+            SharedPreferences sharedPreferences = getSharedPreferences("ReportsPrefs", MODE_PRIVATE);
+            String reportsJson = sharedPreferences.getString("reports", "[]");  // Default to an empty list
+            List<Report> reports = new Gson().fromJson(reportsJson, new TypeToken<List<Report>>(){}.getType());
+            return reports != null ? reports : new ArrayList<>();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading reports: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            return new ArrayList<>();
+        }
     }
 }

@@ -95,37 +95,7 @@
 							android:scaleType="fitXY"
 							android:src="@mipmap/ic_launcher" />
 					</LinearLayout>
-					<!-- <RelativeLayout
-						android:id="@+id/imageSelectionRelativeLayout"
-						android:layout_width="match_parent"
-						android:layout_height="261dp"
-						android:layout_marginBottom="27dp"
-						android:layout_marginHorizontal="19dp"
-						>
-						<ImageView
-							android:id="@+id/selectedImageView"
-							android:layout_width="match_parent"
-							android:layout_height="261dp"
-							android:src="@mipmap/ic_launcher"
-							android:scaleType="fitXY"
-						/>
-						<LinearLayout
-							android:paddingTop="19dp"
-							android:paddingBottom="227dp"
-							android:paddingHorizontal="13dp"
-							android:layout_width="match_parent"
-							android:layout_height="match_parent"
-							android:orientation="vertical">
-							<TextView
-								android:id="@+id/descriptionLabelTextView"
-								android:textColor="#7A6E6E"
-								android:textSize="15sp"
-								android:layout_height="wrap_content"
-								android:layout_width="wrap_content"
-								android:text="Description"
-							/>
-						</LinearLayout>
-					</RelativeLayout> -->
+					
 
 					<RelativeLayout
 						android:id="@+id/mageSelectionRelativeLayout"
@@ -147,15 +117,7 @@
     android:layout_marginBottom="16dp" />
 
 
-						<LinearLayout
-							android:layout_width="match_parent"
-							android:layout_height="match_parent"
-							android:orientation="vertical"
-							android:paddingHorizontal="13dp"
-							android:paddingTop="19dp"
-							android:paddingBottom="227dp">
-
-						</LinearLayout>
+						
 					</RelativeLayout>
 
 					<LinearLayout
@@ -174,21 +136,16 @@
 							android:id="@+id/submitReportButton"
 							android:layout_width="match_parent"
 							android:layout_height="45dp"
-							android:layout_marginHorizontal="30dp"
 							android:background="@drawable/submit_button_background"
 							android:text="Submit"
 							android:textColor="#FFDEDE"
 							android:textSize="15sp"
 							android:gravity="center"
-							android:paddingVertical="9dp" />
+							android:foreground="?attr/selectableItemBackground"
+							android:clickable="true"
+							android:focusable="true" />
 
-						<TextView
-							android:id="@+id/submitButtonTextView"
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="Submit"
-							android:textColor="#FFDEDE"
-							android:textSize="15sp" />
+						
 
 
 					</LinearLayout>

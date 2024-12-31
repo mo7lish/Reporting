@@ -2,7 +2,7 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
+	android:layout_height="match_parent"
 	android:background="#FFFFFF"
 	android:orientation="vertical">
 
@@ -95,7 +95,7 @@
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
-					android:text="Every day, I went to work at 8 a.m. and returned home at 6 p.m. via LRT, but yesterday, someone groped me as I was exiting the train. The train had already left before I could do anything. I was traumatised and felt afraid to use public transport again, despite the fact that it is my only way to get to work. What do I do?"
+					android:text="Every day, I went to work at 8 a.m. and returned home at 6 p.m. via LRT, but yesterday something happened..."
 					android:textColor="#000000"
 					android:textSize="15sp" />
 			</LinearLayout>

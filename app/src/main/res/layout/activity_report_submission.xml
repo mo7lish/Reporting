@@ -121,6 +121,43 @@
 					</RelativeLayout>
 
 					<LinearLayout
+						android:id="@+id/attachmentsLayout"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:orientation="horizontal"
+						android:gravity="end"
+						android:layout_marginHorizontal="19dp"
+						android:layout_marginBottom="16dp">
+
+						<ImageButton
+							android:id="@+id/locationButton"
+							android:layout_width="48dp"
+							android:layout_height="48dp"
+							android:src="@drawable/ic_location"
+							android:background="?attr/selectableItemBackgroundBorderless"
+							android:layout_marginEnd="16dp"
+							android:contentDescription="Attach location" />
+
+						<ImageButton
+							android:id="@+id/mediaButton"
+							android:layout_width="48dp"
+							android:layout_height="48dp"
+							android:src="@drawable/ic_media"
+							android:background="?attr/selectableItemBackgroundBorderless"
+							android:contentDescription="Attach media" />
+					</LinearLayout>
+
+					<TextView
+						android:id="@+id/attachmentStatusTextView"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginHorizontal="19dp"
+						android:layout_marginBottom="16dp"
+						android:textColor="#666666"
+						android:textSize="14sp"
+						android:visibility="gone" />
+
+					<LinearLayout
 						android:id="@+id/submitReportLayout"
 						android:layout_width="match_parent"
 						android:layout_height="59dp"

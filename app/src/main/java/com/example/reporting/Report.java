@@ -3,13 +3,16 @@ package com.example.reporting;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import android.location.Location;
+import android.net.Uri;
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Report implements Serializable {
 
-    private int reportId;
+    private String reportId;
     private String reportType;
     private String reportDetails;
     private String name;
@@ -18,9 +21,11 @@ public class Report implements Serializable {
     private String phoneNumber;
 
     private String status;
+    private String location;
+    private List<String> mediaUrls;
 
     // Constructor to initialize the Report object
-    public Report(int reportId, String reportType, String reportDetails, String name, String username, String date, String phoneNumber, String status) {
+    public Report(String reportId, String reportType, String reportDetails, String name, String username, String date, String phoneNumber, String status) {
         this.reportId = reportId;
         this.reportType = reportType;
         this.reportDetails = reportDetails;
@@ -28,15 +33,17 @@ public class Report implements Serializable {
         this.username = username;
         this.date = date;
         this.phoneNumber = phoneNumber;
-        this.status = status;
+        this.status = "Pending"; // Default status
+        this.location = "";
+        this.mediaUrls = new ArrayList<>();
     }
 
     // Getters and setters for each field
-    public int getReportId() {
+    public String getReportId() {
         return reportId;
     }
 
-    public void setReportId(int reportId) {
+    public void setReportId(String reportId) {
         this.reportId = reportId;
     }
 
@@ -94,6 +101,29 @@ public class Report implements Serializable {
 
     public void setStatus(String status) {  // Setter for status
         this.status = status;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public List<String> getMediaUrls() {
+        return mediaUrls;
+    }
+
+    public void setMediaUrls(List<String> mediaUrls) {
+        this.mediaUrls = mediaUrls;
+    }
+
+    public void addMediaUrl(String mediaUrl) {
+        if (this.mediaUrls == null) {
+            this.mediaUrls = new ArrayList<>();
+        }
+        this.mediaUrls.add(mediaUrl);
     }
 
     // You can add any other methods if necessary, like toString() for debugging

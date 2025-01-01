@@ -7,12 +7,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
@@ -53,9 +57,23 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-    Report report = reportList.get(position);
-    holder.reportCodeTextView.setText(report.getReportType()); // Assuming getReportType exists
-    holder.statusTextView.setText(report.getStatus()); // Assuming getStatus exists
+        Report report = reportList.get(position);
+        
+        // Set report ID and type
+        holder.reportCodeTextView.setText("Report #" + report.getReportId() + "\n" + report.getReportType());
+        
+        // Set report details
+        String details = report.getReportDetails();
+        holder.reportDetailsEditText.setText(details != null ? details : "");
+        
+        // Set status text and background
+        String status = report.getStatus();
+        holder.statusTextView.setText(status != null ? status : "Pending");
+        if ("Completed".equals(status)) {
+            holder.statusPendingLayout.setBackgroundResource(R.drawable.status_background_completed);
+        } else {
+            holder.statusPendingLayout.setBackgroundResource(R.drawable.status_background_pending);
+        }
 
     holder.itemView.setOnClickListener(v -> {
         Intent intent = new Intent(v.getContext(), ReportDetailsActivity.class);
@@ -76,11 +94,15 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView reportCodeTextView, statusTextView;
+        EditText reportDetailsEditText;
+        LinearLayout statusPendingLayout;
 
         public ViewHolder(View itemView) {
             super(itemView);
             reportCodeTextView = itemView.findViewById(R.id.reportCodeTextView);
             statusTextView = itemView.findViewById(R.id.statusTextView);
+            reportDetailsEditText = itemView.findViewById(R.id.reportDetailsEditText);
+            statusPendingLayout = itemView.findViewById(R.id.statusPendingLayout);
         }
     }
 }

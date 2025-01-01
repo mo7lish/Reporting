@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.cardview.widget.CardView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
@@ -33,11 +35,11 @@ public class ReportPage extends AppCompatActivity {
         // Load initial sample reports if no reports exist
         if (loadReports().isEmpty()) {
             List<Report> sampleReports = new ArrayList<>();
-            sampleReports.add(new Report(1, "Child Marriage", "Sample report for child marriage case", 
+            sampleReports.add(new Report("1", "Child Marriage", "Sample report for child marriage case",
                 "John Doe", "johndoe", "23/11/2023 14:30", "+1234567890", "Pending"));
-            sampleReports.add(new Report(2, "Forced Marriage", "Sample report for forced marriage case", 
+            sampleReports.add(new Report("2", "Forced Marriage", "Sample report for forced marriage case",
                 "Jane Smith", "janesmith", "24/11/2023 15:45", "+1234567890", "Pending"));
-            sampleReports.add(new Report(3, "Sexual Harassment", "Sample report for harassment case", 
+            sampleReports.add(new Report("3", "Sexual Harassment", "Sample report for harassment case",
                 "Maria Amir", "maramir", "25/11/2023 16:15", "+1234567890", "Completed"));
             saveReports(sampleReports);
         }

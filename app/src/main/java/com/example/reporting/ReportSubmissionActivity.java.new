@@ -1,0 +1,77 @@
+@Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLastLocation();
+            } else {
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void getLastLocation() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            // Get address from location
+                            getAddressFromLocation(location);
+                        } else {
+                            Toast.makeText(this, "Unable to get location", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error getting location", Toast.LENGTH_SHORT).show();
+                    });
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getAddressFromLocation(Location location) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    1
+            );
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                StringBuilder locationString = new StringBuilder();
+                
+                // Get locality (city)
+                String locality = address.getLocality();
+                if (locality != null) {
+                    locationString.append(locality);
+                }
+                
+                // Get admin area (state/province)
+                String adminArea = address.getAdminArea();
+                if (adminArea != null) {
+                    if (locationString.length() > 0) {
+                        locationString.append(", ");
+                    }
+                    locationString.append(adminArea);
+                }
+                
+                // Get country
+                String country = address.getCountryName();
+                if (country != null) {
+                    if (locationString.length() > 0) {
+                        locationString.append(", ");
+                    }
+                    locationString.append(country);
+                }
+                
+                String fullAddress = locationString.toString();
+                updateAttachmentStatus("Location: " + fullAddress);
+                currentReport.setLocation(fullAddress);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error getting address", Toast.LENGTH_SHORT).show();
+        }
+    }

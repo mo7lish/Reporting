@@ -31,7 +31,7 @@ public class ReportPage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_page);
-        
+
         // Load initial sample reports if no reports exist
         if (loadReports().isEmpty()) {
             List<Report> sampleReports = new ArrayList<>();
@@ -43,17 +43,20 @@ public class ReportPage extends AppCompatActivity {
                 "Maria Amir", "maramir", "25/11/2023 16:15", "+1234567890", "Completed"));
             saveReports(sampleReports);
         }
-        
-        // Initialize RecyclerView
+
+        // Initialize RecyclerView with proper context
         reportsRecyclerView = findViewById(R.id.reportsRecyclerView);
-        reportsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        
+        reportsRecyclerView.setLayoutManager(new LinearLayoutManager(ReportPage.this));
+        reportList = loadReports();
+        reportAdapter = new ReportAdapter(this, reportList);
+        reportsRecyclerView.setAdapter(reportAdapter);
+
         // Load saved reports from SharedPreferences
         reportList = loadReports();
         if (reportList == null) {
             reportList = new ArrayList<>();
         }
-        
+
         // Initialize adapter with loaded reports
         reportAdapter = new ReportAdapter(this, reportList);
         reportsRecyclerView.setAdapter(reportAdapter);
@@ -88,6 +91,7 @@ public class ReportPage extends AppCompatActivity {
         super.onResume();
         // Reload the report list when the activity is resumed (after adding a new report)
         List<Report> loadedReports = loadReports();
+        // Initialize list before setting adapter
         if (loadedReports != null) {
             reportList = loadedReports;
             if (reportAdapter != null) {
@@ -138,3 +142,5 @@ public class ReportPage extends AppCompatActivity {
         }
     }
 }
+
+

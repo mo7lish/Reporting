@@ -1,0 +1,51 @@
+private void showDeleteConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Report")
+                .setMessage("Are you sure you want to delete this report?")
+                .setPositiveButton("Yes", (dialog, which) -> deleteReport())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void deleteReport() {
+        try {
+            // Load current reports list
+            String reportsJson = sharedPreferences.getString(REPORTS_PREF_KEY, "[]");
+            Type listType = new TypeToken<ArrayList<Report>>(){}.getType();
+            reportsList = new Gson().fromJson(reportsJson, listType);
+            
+            // Remove current report from the list
+            reportsList.removeIf(report -> report.getReportId().equals(currentReport.getReportId()));
+            
+            // Save updated list
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(REPORTS_PREF_KEY, new Gson().toJson(reportsList));
+            editor.apply();
+            
+            // Show success message
+            Toast.makeText(this, "Report deleted successfully", Toast.LENGTH_SHORT).show();
+            
+            // Delete associated image if exists
+            if (currentReport.getImagePath() != null) {
+                deleteReportImage(currentReport.getImagePath());
+            }
+            
+            // Return to previous activity
+            finish();
+            
+        } catch (Exception e) {
+            Toast.makeText(this, "Error deleting report", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void deleteReportImage(String imagePath) {
+        try {
+            if (imagePath != null && !imagePath.isEmpty()) {
+                // Delete the image file
+                getContentResolver().delete(android.net.Uri.parse(imagePath), null, null);
+            }
+        } catch (Exception e) {
+            // Log error but don't show to user since report was already deleted
+            e.printStackTrace();
+        }
+    }

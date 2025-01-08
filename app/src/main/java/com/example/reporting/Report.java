@@ -1,18 +1,37 @@
 package com.example.reporting;
 
-import com.google.gson.annotations.SerializedName;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import android.location.Location;
-import android.net.Uri;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Report implements Serializable {
+    public void setLocation(String location) {
+        this.location = location;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public List<String> getMediaUrls() {
+        return mediaUrls;
+    }
+    
+    public void addMediaUrl(String url) {
+        if (mediaUrls == null) {
+            mediaUrls = new ArrayList<>();
+        }
+        mediaUrls.add(url);
+    }
 
     private String reportId;
+    private String location;
+    private List<String> mediaUrls = new ArrayList<>();
+    private String reportNumber;
+    private String address;
     private String reportType;
     private String reportDetails;
     private String name;
@@ -21,11 +40,10 @@ public class Report implements Serializable {
     private String phoneNumber;
 
     private String status;
-    private String location;
-    private List<String> mediaUrls;
 
     // Constructor to initialize the Report object
     public Report(String reportId, String reportType, String reportDetails, String name, String username, String date, String phoneNumber, String status) {
+        this.mediaUrls = new ArrayList<>();
         this.reportId = reportId;
         this.reportType = reportType;
         this.reportDetails = reportDetails;
@@ -34,11 +52,27 @@ public class Report implements Serializable {
         this.date = date;
         this.phoneNumber = phoneNumber;
         this.status = "Pending"; // Default status
-        this.location = "";
+        this.location = String.valueOf(new Location("0", "0"));
         this.mediaUrls = new ArrayList<>();
     }
 
     // Getters and setters for each field
+    public String getReportNumber() {
+        return reportNumber;
+    }
+
+    public void setReportNumber(String reportNumber) {
+        this.reportNumber = reportNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     public String getReportId() {
         return reportId;
     }
@@ -103,28 +137,7 @@ public class Report implements Serializable {
         this.status = status;
     }
     
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public List<String> getMediaUrls() {
-        return mediaUrls;
-    }
-
-    public void setMediaUrls(List<String> mediaUrls) {
-        this.mediaUrls = mediaUrls;
-    }
-
-    public void addMediaUrl(String mediaUrl) {
-        if (this.mediaUrls == null) {
-            this.mediaUrls = new ArrayList<>();
-        }
-        this.mediaUrls.add(mediaUrl);
-    }
+    // Removed duplicate and unused methods
 
     // You can add any other methods if necessary, like toString() for debugging
     @Override

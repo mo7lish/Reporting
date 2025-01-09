@@ -97,8 +97,8 @@ public class ReportDetailsActivity extends AppCompatActivity {
             }
             
             if (reportDetailsText != null) {
-                reportDetailsText.setText(String.format("Name: %s\nUsername: %s\nReport Date: %s\nPhone Number: %s",
-                        currentReport.getName(), currentReport.getUsername(), currentReport.getDate(), currentReport.getPhoneNumber()));
+                reportDetailsText.setText(String.format("Name: %s\nUsername: %s\nReport Date: %s\nLocation: %s\nPhone Number: %s",
+                        currentReport.getName(), currentReport.getUsername(), currentReport.getDate(), currentReport.getAddress(), currentReport.getPhoneNumber()));
             }
             
             if (reportText != null) {

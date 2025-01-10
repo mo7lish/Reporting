@@ -8,6 +8,7 @@ import java.util.List;
 
 
 public class Report implements Serializable {
+    private ArrayList<String> imageUris = new ArrayList<>();
     public void setLocation(String location) {
         this.location = location;
     }
@@ -38,6 +39,7 @@ public class Report implements Serializable {
     private String username;
     private String date;
     private String phoneNumber;
+    private ArrayList<String> attachedImages;
 
     private String status;
 
@@ -71,6 +73,14 @@ public class Report implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public ArrayList<String> getImageUris() {
+        return imageUris != null ? imageUris : new ArrayList<>();
+    }
+
+    public void setImageUris(ArrayList<String> imageUris) {
+        this.imageUris = imageUris != null ? imageUris : new ArrayList<>();
     }
 
     public String getReportId() {
@@ -123,6 +133,22 @@ public class Report implements Serializable {
 
     public String getPhoneNumber() {
         return phoneNumber;
+    }
+    
+    public ArrayList<String> getMediaUris() {
+        return attachedImages;
+    }
+    
+    public void setMediaUris(ArrayList<String> mediaUris) {
+        this.attachedImages = mediaUris;
+    }
+    
+    public ArrayList<String> getAttachedImages() {
+        return attachedImages;
+    }
+    
+    public void setAttachedImages(ArrayList<String> attachedImages) {
+        this.attachedImages = attachedImages;
     }
 
     public void setPhoneNumber(String phoneNumber) {

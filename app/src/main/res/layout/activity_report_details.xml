@@ -110,6 +110,14 @@
 					android:text="Every day, I went to work at 8 a.m. and returned home at 6 p.m. via LRT, but yesterday something happened..."
 					android:textColor="#000000"
 					android:textSize="15sp" />
+                    
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/reportImagePreviewRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
 			</LinearLayout>
 
 			<TextView

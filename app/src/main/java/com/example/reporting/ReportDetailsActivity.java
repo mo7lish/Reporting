@@ -4,6 +4,10 @@ import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.net.Uri;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +28,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
@@ -31,6 +38,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 public class ReportDetailsActivity extends AppCompatActivity {
+    private RecyclerView imagePreviewRecyclerView;
 
     private Report currentReport;
     private SharedPreferences sharedPreferences;
@@ -41,10 +49,17 @@ public class ReportDetailsActivity extends AppCompatActivity {
     private ImageView deleteReportButton;
     private List<Report> reportsList;
 
+    private ImagePreviewAdapter imagePreviewAdapter;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_details);
+        
+        imagePreviewRecyclerView = findViewById(R.id.reportImagePreviewRecyclerView);
+        imagePreviewRecyclerView.setLayoutManager(
+            new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        imagePreviewRecyclerView.setVisibility(View.GONE);
         
         // Initialize views
         reportCodeTextView = findViewById(R.id.reportCodeTextView);
@@ -76,6 +91,18 @@ public class ReportDetailsActivity extends AppCompatActivity {
         TextView reportNumberView = findViewById(R.id.reportCodeTextView);
         if (currentReport != null && currentReport.getReportId() != null) {
             reportNumberView.setText(currentReport.getReportId() + " " + currentReport.getReportType());
+            
+            // Setup image preview if images exist
+            if (currentReport.getImageUris() != null && !currentReport.getImageUris().isEmpty()) {
+                List<Uri> imageUris = new ArrayList<>();
+                for (String uriString : currentReport.getImageUris()) {
+                    imageUris.add(Uri.parse(uriString));
+                }
+                
+                imagePreviewAdapter = new ImagePreviewAdapter(this, imageUris, null);
+                imagePreviewRecyclerView.setAdapter(imagePreviewAdapter);
+                imagePreviewRecyclerView.setVisibility(View.VISIBLE);
+            }
         }
         
         TextView reportDetailsView = findViewById(R.id.reportDetailsTextView);

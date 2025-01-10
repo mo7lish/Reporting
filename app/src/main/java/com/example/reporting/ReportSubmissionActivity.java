@@ -1,10 +1,26 @@
 package com.example.reporting;
 
 import android.Manifest;
+import android.content.ClipData;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import android.widget.TextView;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.core.app.ActivityCompat;
@@ -30,6 +46,8 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,19 +63,31 @@ import java.util.Date;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class ReportSubmissionActivity extends AppCompatActivity {
+public class ReportSubmissionActivity extends AppCompatActivity implements ImagePreviewAdapter.OnImageRemoveListener {
+    private RecyclerView imagePreviewRecyclerView;
+    private ImagePreviewAdapter imagePreviewAdapter;
+    private List<Uri> selectedImageUris = new ArrayList<>();
+    private static final int MAX_IMAGE_SIZE = 1024 * 1024; // 1MB
+    private ActivityResultLauncher<Intent> mediaPickerLauncher;
+
+    @Override
+    public void onImageRemove(int position) {
+        if (position >= 0 && position < selectedImageUris.size()) {
+            selectedImageUris.remove(position);
+            imagePreviewAdapter.notifyItemRemoved(position);
+            refreshAttachmentStatus();
+        }
+    }
+    private List<String> mediaUrls = new ArrayList<>();
     private static final int LOCATION_PERMISSION_REQUEST = Constants.LOCATION_PERMISSION_REQUEST;
     private static final int IMAGE_PERMISSION_REQUEST = Constants.IMAGE_PERMISSION_REQUEST;
-    private static final int IMAGE_PICK_CODE = Constants.IMAGE_PICK_CODE;
-    private static final int MAX_IMAGE_SIZE = Constants.MAX_IMAGE_SIZE;
+    private StringBuilder statusBuilder;
+
 
     private ImageView previewImageView;
     private TextView locationTextView;
     private ProgressBar loadingIndicator;
-    private RecyclerView imagePreviewRecyclerView;
-    private List<Uri> selectedImageUris;
     private String currentAddress;
-    private ImagePreviewAdapter imagePreviewAdapter;
     private TextView attachmentStatusTextView;
     private Spinner spinnerReportType;
     private EditText reportDetailsEditText;
@@ -81,28 +111,7 @@ public class ReportSubmissionActivity extends AppCompatActivity {
         }
     }
     
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == MEDIA_PERMISSION_REQUEST && resultCode == RESULT_OK && data != null) {
-            if (data.getClipData() != null) {
-                // Multiple images selected
-                int count = data.getClipData().getItemCount();
-                for (int i = 0; i < count; i++) {
-                    Uri imageUri = data.getClipData().getItemAt(i).getUri();
-                    handleSingleImage(imageUri);
-                }
-            } else if (data.getData() != null) {
-                // Single image selected
-                Uri imageUri = data.getData();
-                handleSingleImage(imageUri);
-            }
-
-            refreshAttachmentStatus();
-            Toast.makeText(this, selectedImageUris.size() + " image(s) attached", Toast.LENGTH_SHORT).show();
-        }
-    }
+    
     
     private String generateReportId(String reportType) {
         // Get the initials from the report type
@@ -122,12 +131,9 @@ public class ReportSubmissionActivity extends AppCompatActivity {
         return String.format("%s%04d", initials, number);
     }
     private static final int MEDIA_PERMISSION_REQUEST = 1001;
-
-    private List<String> mediaUrls;
     private String currentLocation;
     private String selectedReportType;
-    private ActivityResultLauncher<Intent> mediaPickerLauncher;
-    
+
     // Predefined report types
     private void saveReport(Report report) {
         // Get existing reports
@@ -161,10 +167,23 @@ public class ReportSubmissionActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == IMAGE_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                launchImagePicker();
+            } else {
+                Toast.makeText(this, "Permission denied. Cannot access images.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_submission);
         initializeViews();
+        setupMediaPicker();
         setupUI();
         setupListeners();
     }
@@ -176,11 +195,20 @@ public class ReportSubmissionActivity extends AppCompatActivity {
         attachmentStatusTextView = findViewById(R.id.attachmentStatusTextView);
         mediaButton = findViewById(R.id.mediaButton);
         locationButton = findViewById(R.id.locationButton);
+        imagePreviewRecyclerView = findViewById(R.id.imagePreviewRecyclerView);
+        imagePreviewRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         spinnerReportType = findViewById(R.id.reportTypeSpinner);
         loadingIndicator = findViewById(R.id.loadingIndicator);
+        statusBuilder = new StringBuilder();
         locationTextView = findViewById(R.id.locationTextView);
+        
+        // Initialize RecyclerView for image previews
         imagePreviewRecyclerView = findViewById(R.id.imagePreviewRecyclerView);
         selectedImageUris = new ArrayList<>();
+        imagePreviewAdapter = new ImagePreviewAdapter(this, selectedImageUris, this);
+        imagePreviewRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        imagePreviewRecyclerView.setAdapter(imagePreviewAdapter);
+        refreshAttachmentStatus();
     }
 
     private void setupUI() {
@@ -218,10 +246,22 @@ public class ReportSubmissionActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri selectedImage = result.getData().getData();
-                    if (selectedImage != null) {
-                        mediaUrls.add(selectedImage.toString());
-
+                    Intent data = result.getData();
+                    try {
+                        if (data.getClipData() != null) {
+                            // Handle multiple images
+                            ClipData clipData = data.getClipData();
+                            for (int i = 0; i < clipData.getItemCount(); i++) {
+                                Uri imageUri = clipData.getItemAt(i).getUri();
+                                handleSingleImage(imageUri);
+                            }
+                        } else if (data.getData() != null) {
+                            // Handle single image
+                            handleSingleImage(data.getData());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Failed to process selected images", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -264,42 +304,75 @@ public class ReportSubmissionActivity extends AppCompatActivity {
     }
     
     private void attachMedia() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                new String[]{Manifest.permission.READ_MEDIA_IMAGES},
                 IMAGE_PERMISSION_REQUEST);
             return;
         }
-        
+        launchImagePicker();
+    }
+    
+    private void launchImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        startActivityForResult(Intent.createChooser(intent, "Select Pictures"), IMAGE_PICK_CODE);
+        try {
+            mediaPickerLauncher.launch(Intent.createChooser(intent, "Select Pictures"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to open image picker", Toast.LENGTH_SHORT).show();
+        }
     }
     
     
 
     private void handleSingleImage(Uri imageUri) {
-        if (imageUri != null && MediaUtils.isImageSizeValid(this, imageUri, MAX_IMAGE_SIZE)) {
-            selectedImageUris.add(imageUri);
-            imagePreviewAdapter.notifyDataSetChanged();
-            imagePreviewRecyclerView.setVisibility(View.VISIBLE);
-            refreshAttachmentStatus();
+        if (imageUri != null) {
+            try {
+                if (MediaUtils.isImageSizeValid(this, imageUri, MAX_IMAGE_SIZE)) {
+                    selectedImageUris.add(imageUri);
+                    updateImagePreviewAdapter();
+                    refreshAttachmentStatus();
+                } else {
+                    Toast.makeText(this, "Image size should not exceed 1MB", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(this, "Image size should not exceed 1MB", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void updateImagePreviewAdapter() {
+        if (imagePreviewAdapter == null) {
+            imagePreviewAdapter = new ImagePreviewAdapter(this, selectedImageUris, this);
+            imagePreviewRecyclerView.setAdapter(imagePreviewAdapter);
+        } else {
+            imagePreviewAdapter.notifyDataSetChanged();
+        }
+        imagePreviewRecyclerView.setVisibility(View.VISIBLE);
     }
     
     private void refreshAttachmentStatus() {
-        StringBuilder statusBuilder = new StringBuilder();
+        statusBuilder.setLength(0);
+        
+        if (!selectedImageUris.isEmpty()) {
+            statusBuilder.append(String.format("%d image(s) attached\n", selectedImageUris.size()));
+            imagePreviewRecyclerView.setVisibility(View.VISIBLE);
+        } else {
+            imagePreviewRecyclerView.setVisibility(View.GONE);
+        }
         
         if (currentLocation != null) {
             statusBuilder.append("📍 Location attached\n");
         }
         
-        if (!mediaUrls.isEmpty()) {
-            statusBuilder.append("📎 ").append(mediaUrls.size()).append(" media files attached\n");
+        if (mediaUrls != null && !mediaUrls.isEmpty()) {
+            statusBuilder.append("📎 ").append(mediaUrls.size()).append(" media file(s) attached");
         }
         
         String statusText = statusBuilder.toString().trim();
@@ -307,48 +380,63 @@ public class ReportSubmissionActivity extends AppCompatActivity {
             attachmentStatusTextView.setText(statusText);
             attachmentStatusTextView.setVisibility(View.VISIBLE);
         } else {
+            attachmentStatusTextView.setText("No attachments");
             attachmentStatusTextView.setVisibility(View.GONE);
         }
-        
-        if (!mediaUrls.isEmpty()) {
-            statusBuilder.append("📎 ").append(mediaUrls.size()).append(" media file(s) attached");
-        } else {
-            statusBuilder.append("No media attached");
-        }
-        
-        attachmentStatusTextView.setText(statusBuilder.toString());
-        attachmentStatusTextView.setVisibility(View.VISIBLE);
     }
     
+    private String getCurrentUsername() {
+        // TODO: Implement actual user profile retrieval
+        return "default_user";
+    }
+
+    private String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return sdf.format(new Date());
+    }
+
+    private String getCurrentPhoneNumber() {
+        // TODO: Implement actual phone number retrieval
+        return "";
+    }
+
     private void submitReport() {
         if (reportDetailsEditText == null || spinnerReportType == null) {
             Toast.makeText(this, "Error: Form not properly initialized", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         final String details = reportDetailsEditText.getText().toString().trim();
+        
+        // Convert Uri list to String list for the report
+        ArrayList<String> imageUriStrings = new ArrayList<>();
+        for (Uri uri : selectedImageUris) {
+            imageUriStrings.add(uri.toString());
+        }
         if (details.isEmpty()) {
             Toast.makeText(this, "Please enter report details", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        loadingIndicator.setVisibility(View.VISIBLE);
-        
-        // Generate report ID and number
         String reportId = generateReportId(selectedReportType);
         
-        // Create new report
+        // Convert image URIs to strings for storage
+        imageUriStrings = new ArrayList<>();
+        for (Uri uri : selectedImageUris) {
+            imageUriStrings.add(uri.toString());
+        }
+        
+        // Create new report with all required fields
         Report report = new Report(
             reportId,
             selectedReportType,
             details,
             "User Name", // TODO: Get from user profile
-            "username", // TODO: Get from user profile
-            String.valueOf(System.currentTimeMillis()),
-            "", // TODO: Get phone number
+            getCurrentUsername(),
+            getCurrentDate(),
+            getCurrentPhoneNumber(),
             Constants.STATUS_PENDING
         );
-        report.setReportNumber(reportId);
         
         // Set location if available
         if (currentLocation != null) {
@@ -357,12 +445,14 @@ public class ReportSubmissionActivity extends AppCompatActivity {
         if (currentAddress != null) {
             report.setAddress(currentAddress);
         }
+        // Set image URIs regardless of address status
+        report.setImageUris(imageUriStrings);
         
         // Add media URLs if any
         for (Uri uri : selectedImageUris) {
             try {
                 byte[] compressedImage = MediaUtils.compressImage(this, uri, MAX_IMAGE_SIZE);
-                // TODO: Upload image to cloud storage and get URL
+                
                 String imageUrl = "https://example.com/images/" + uri.getLastPathSegment(); // Temporary placeholder
                 report.addMediaUrl(imageUrl);
             } catch (IOException e) {

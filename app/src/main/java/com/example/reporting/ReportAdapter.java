@@ -2,24 +2,13 @@ package com.example.reporting;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.core.content.ContextCompat;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder> {

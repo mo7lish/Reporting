@@ -18,6 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -46,6 +47,9 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+
 
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -64,11 +68,24 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class ReportSubmissionActivity extends AppCompatActivity implements ImagePreviewAdapter.OnImageRemoveListener {
+    private EditText reportDetailsEditText;
+    private Spinner spinnerReportType;
+    private Button submitButton;
+    private Button attachLocationButton;
+    private Button attachMediaButton;
+    private TextView attachmentStatusTextView;
     private RecyclerView imagePreviewRecyclerView;
     private ImagePreviewAdapter imagePreviewAdapter;
-    private List<Uri> selectedImageUris = new ArrayList<>();
+    
+    private String currentLocation;
+    private String currentAddress;
+    private ArrayList<Uri> selectedImageUris;
+    private StringBuilder statusBuilder;
+    private String selectedReportType;
     private static final int MAX_IMAGE_SIZE = 1024 * 1024; // 1MB
     private ActivityResultLauncher<Intent> mediaPickerLauncher;
+    private static final int LOCATION_PERMISSION_REQUEST = Constants.LOCATION_PERMISSION_REQUEST;
+    private static final int IMAGE_PERMISSION_REQUEST = Constants.IMAGE_PERMISSION_REQUEST;
 
     @Override
     public void onImageRemove(int position) {
@@ -78,20 +95,11 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
             refreshAttachmentStatus();
         }
     }
-    private List<String> mediaUrls = new ArrayList<>();
-    private static final int LOCATION_PERMISSION_REQUEST = Constants.LOCATION_PERMISSION_REQUEST;
-    private static final int IMAGE_PERMISSION_REQUEST = Constants.IMAGE_PERMISSION_REQUEST;
-    private StringBuilder statusBuilder;
 
 
     private ImageView previewImageView;
     private TextView locationTextView;
     private ProgressBar loadingIndicator;
-    private String currentAddress;
-    private TextView attachmentStatusTextView;
-    private Spinner spinnerReportType;
-    private EditText reportDetailsEditText;
-    private Button submitButton;
     private ImageButton mediaButton;
     private ImageButton locationButton;
     private FusedLocationProviderClient fusedLocationClient;
@@ -131,8 +139,6 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
         return String.format("%s%04d", initials, number);
     }
     private static final int MEDIA_PERMISSION_REQUEST = 1001;
-    private String currentLocation;
-    private String selectedReportType;
 
     // Predefined report types
     private void saveReport(Report report) {
@@ -189,6 +195,8 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
     }
 
     private void initializeViews() {
+        selectedImageUris = new ArrayList<>();
+        statusBuilder = new StringBuilder();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         reportDetailsEditText = findViewById(R.id.reportTextTextView);
         submitButton = findViewById(R.id.submitReportButton);
@@ -199,7 +207,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
         imagePreviewRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         spinnerReportType = findViewById(R.id.reportTypeSpinner);
         loadingIndicator = findViewById(R.id.loadingIndicator);
-        statusBuilder = new StringBuilder();
+        StringBuilder statusBuilder = new StringBuilder();
         locationTextView = findViewById(R.id.locationTextView);
         
         // Initialize RecyclerView for image previews
@@ -282,7 +290,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
                 if (location != null) {
                     currentLocation = location.getLatitude() + "," + location.getLongitude();
                     try {
-                        currentAddress = LocationUtils.getAddressFromLocation(this, 
+                        currentAddress = Utils.getAddressFromLocation(this,
                             location.getLatitude(), location.getLongitude());
                         if (currentAddress != null) {
                             locationTextView.setText(currentAddress);
@@ -331,7 +339,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
     private void handleSingleImage(Uri imageUri) {
         if (imageUri != null) {
             try {
-                if (MediaUtils.isImageSizeValid(this, imageUri, MAX_IMAGE_SIZE)) {
+                if (Utils.isImageSizeValid(this, imageUri, MAX_IMAGE_SIZE)) {
                     selectedImageUris.add(imageUri);
                     updateImagePreviewAdapter();
                     refreshAttachmentStatus();
@@ -358,6 +366,30 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
     }
     
     private void refreshAttachmentStatus() {
+        if (statusBuilder == null) {
+            statusBuilder = new StringBuilder();
+        }
+        
+        statusBuilder.setLength(0); // Clear previous status
+        
+        // Check for location
+        if (currentLocation != null) {
+            statusBuilder.append("Location attached\n");
+        }
+        
+        // Check for media attachments
+        if (selectedImageUris != null && !selectedImageUris.isEmpty()) {
+            int count = selectedImageUris.size();
+            statusBuilder.append(count).append(" image");
+            if (count > 1) statusBuilder.append("s");
+            statusBuilder.append(" attached\n");
+        }
+        
+        // Update the status TextView
+        if (attachmentStatusTextView != null) {
+            String status = statusBuilder.length() > 0 ? statusBuilder.toString().trim() : "No attachments";
+            attachmentStatusTextView.setText(status);
+        }
         statusBuilder.setLength(0);
         
         if (!selectedImageUris.isEmpty()) {
@@ -370,7 +402,9 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
         if (currentLocation != null) {
             statusBuilder.append("📍 Location attached\n");
         }
-        
+
+        List<String> mediaUrls = new ArrayList<>();
+
         if (mediaUrls != null && !mediaUrls.isEmpty()) {
             statusBuilder.append("📎 ").append(mediaUrls.size()).append(" media file(s) attached");
         }
@@ -397,7 +431,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
 
     private String getCurrentPhoneNumber() {
         // TODO: Implement actual phone number retrieval
-        return "";
+        return "+60148794906";
     }
 
     private void submitReport() {
@@ -426,12 +460,23 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
             imageUriStrings.add(uri.toString());
         }
         
+        // Create Location object from currentLocation
+        Location reportLocation = null;
+        if (currentLocation != null) {
+            String[] coordinates = currentLocation.split(",");
+            reportLocation = new Location(
+                coordinates[0],
+                coordinates[1]
+            );
+            reportLocation.setAddress(currentAddress);
+        }
+
         // Create new report with all required fields
         Report report = new Report(
             reportId,
             selectedReportType,
             details,
-            "User Name", // TODO: Get from user profile
+            "User Name", // TODO: Get from signed user profile
             getCurrentUsername(),
             getCurrentDate(),
             getCurrentPhoneNumber(),
@@ -440,7 +485,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
         
         // Set location if available
         if (currentLocation != null) {
-            report.setLocation(currentLocation);
+            report.setLocation(reportLocation);
         }
         if (currentAddress != null) {
             report.setAddress(currentAddress);
@@ -451,7 +496,7 @@ public class ReportSubmissionActivity extends AppCompatActivity implements Image
         // Add media URLs if any
         for (Uri uri : selectedImageUris) {
             try {
-                byte[] compressedImage = MediaUtils.compressImage(this, uri, MAX_IMAGE_SIZE);
+                byte[] compressedImage = Utils.compressImage(this, uri, MAX_IMAGE_SIZE);
                 
                 String imageUrl = "https://example.com/images/" + uri.getLastPathSegment(); // Temporary placeholder
                 report.addMediaUrl(imageUrl);
